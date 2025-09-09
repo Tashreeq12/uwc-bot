@@ -34,7 +34,7 @@
     clientId: '4122d265-45f6-47ff-ad06-007367e5444b',
     selector: '#webchat',
     configuration: {
-      enableTextInput: true,   // ensures text input is visible
+      enableTextInput: true,
       showConversationsButton: false,
       themeMode: 'light',
       fontFamily: 'Inter, Arial',
@@ -56,46 +56,46 @@
 
     // Text-to-Speech
     function speak(text){
-      window.speechSynthesis.cancel();
-      const u=new SpeechSynthesisUtterance(text);
-      u.lang='en-US';
-      u.rate=1.0;
+      window.speechSynthesis.cancel();  // stop previous speech
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'en-US';
+      u.rate = 1.0;
       window.speechSynthesis.speak(u);
     }
 
     stopBtn.addEventListener('click',()=>window.speechSynthesis.cancel());
 
-    // Speak bot replies
-    window.botpressWebChat.onEvent('message', (event)=>{
+    // Speak bot replies aloud
+    window.botpressWebChat.onEvent('incoming.message', (event)=>{
       if(event.payload && event.payload.text){
         speak(event.payload.text);
       }
     });
 
     // Speech-to-Text
-    const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!Rec){
-      statusEl.textContent='Voice input not supported in this browser. Please use Chrome.';
-      voiceBtn.disabled=true;
+      statusEl.textContent = 'Voice input not supported in this browser. Please use Chrome.';
+      voiceBtn.disabled = true;
       return;
     }
 
-    const rec=new Rec();
-    rec.lang='en-US';
-    rec.interimResults=false;
+    const rec = new Rec();
+    rec.lang = 'en-US';
+    rec.interimResults = false;
 
-    voiceBtn.addEventListener('click',()=>{
+    voiceBtn.addEventListener('click', ()=>{
       window.speechSynthesis.cancel();
-      statusEl.textContent='Listening… (allow mic if asked)';
-      voiceBtn.disabled=true;
+      statusEl.textContent = 'Listening… (allow mic if asked)';
+      voiceBtn.disabled = true;
       rec.start();
     });
 
-    rec.onresult = (e) => {
+    rec.onresult = (e)=>{
       const said = e.results[0][0].transcript;
       statusEl.textContent = `You said: ${said}`;
-
-      // Send the spoken text properly to Botpress
+      
+      // Send spoken text to bot
       window.botpressWebChat.sendEvent({
         type: 'input.text',
         text: said,
@@ -104,8 +104,8 @@
       });
     };
 
-    rec.onerror=()=>{ statusEl.textContent='Mic error. Try again.'; };
-    rec.onend=()=>{ voiceBtn.disabled=false; };
+    rec.onerror = ()=>{ statusEl.textContent = 'Mic error. Try again.'; };
+    rec.onend = ()=>{ voiceBtn.disabled = false; };
   });
 </script>
 
