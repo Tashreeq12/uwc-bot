@@ -11,12 +11,7 @@
     #voiceToggle:disabled { background:#9e9e9e; }
     #status { font-size:14px; color:#555; flex:1; }
     #webchat { width:100%; height: calc(100vh - 56px); }
-    /* Option 2: force-hide default Botpress mic buttons */
-    .bpw-speech-button, .bpw-floating-button {
-      display: none !important;
-      visibility: hidden !important;
-      pointer-events: none !important;
-    }
+    .bpw-speech-button { display: none !important; } /* hide default voice button */
   </style>
   <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
 </head>
@@ -30,7 +25,7 @@
 <div id="webchat"></div>
 
 <script>
-  // Option 1: Initialize Botpress Webchat without default voice button
+  // Initialize Botpress Webchat without default voice button
   window.botpress.init({
     botId: 'aa441515-3c65-48ea-acd1-91044111bed2',
     clientId: '4122d265-45f6-47ff-ad06-007367e5444b',
@@ -144,3 +139,4 @@
 
 </body>
 </html>
+
