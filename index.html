@@ -7,21 +7,17 @@
   <style>
     body { font-family: Arial, sans-serif; margin:0; }
     .bar { display:flex; gap:8px; align-items:center; padding:10px; border-bottom:1px solid #eee; }
-    #voiceBtn, #stopBtn { border:0; padding:10px 14px; border-radius:8px; cursor:pointer; }
-    #voiceBtn { background:#1e88e5; color:#fff; }
-    #voiceBtn:disabled { background:#9e9e9e; }
-    #stopBtn { background:#f5f5f5; }
+    #voiceToggle { border:0; padding:10px 14px; border-radius:8px; cursor:pointer; background:#1e88e5; color:#fff; }
+    #voiceToggle:disabled { background:#9e9e9e; }
     #status { font-size:14px; color:#555; flex:1; }
     #webchat { width:100%; height: calc(100vh - 56px); }
   </style>
-  <!-- Botpress Webchat Script -->
   <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
 </head>
 <body>
 
 <div class="bar">
-  <button id="voiceBtn">🎤 Speak</button>
-  <button id="stopBtn">⏹ Stop Voice</button>
+  <button id="voiceToggle">🎤 Start Voice</button>
   <span id="status">You can type below or use voice 🎤</span>
 </div>
 
@@ -45,25 +41,21 @@
     }
   });
 
-  // Voice Feature
   (function ready(cb){
     if(window.botpressWebChat){ cb(); } 
     else { setTimeout(() => ready(cb), 100); }
   })(function(){
-    const statusEl=document.getElementById('status');
-    const voiceBtn=document.getElementById('voiceBtn');
-    const stopBtn=document.getElementById('stopBtn');
+    const statusEl = document.getElementById('status');
+    const voiceToggle = document.getElementById('voiceToggle');
 
     // Text-to-Speech
     function speak(text){
-      window.speechSynthesis.cancel();  // stop previous speech
+      window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = 'en-US';
       u.rate = 1.0;
       window.speechSynthesis.speak(u);
     }
-
-    stopBtn.addEventListener('click',()=>window.speechSynthesis.cancel());
 
     // Speak bot replies aloud
     window.botpressWebChat.onEvent('incoming.message', (event)=>{
@@ -76,7 +68,7 @@
     const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!Rec){
       statusEl.textContent = 'Voice input not supported in this browser. Please use Chrome.';
-      voiceBtn.disabled = true;
+      voiceToggle.disabled = true;
       return;
     }
 
@@ -84,11 +76,23 @@
     rec.lang = 'en-US';
     rec.interimResults = false;
 
-    voiceBtn.addEventListener('click', ()=>{
-      window.speechSynthesis.cancel();
-      statusEl.textContent = 'Listening… (allow mic if asked)';
-      voiceBtn.disabled = true;
-      rec.start();
+    let listening = false;
+
+    voiceToggle.addEventListener('click', ()=>{
+      if(!listening){
+        // Start listening
+        window.speechSynthesis.cancel();
+        rec.start();
+        listening = true;
+        voiceToggle.textContent = '⏹ Stop Voice';
+        statusEl.textContent = 'Listening… (allow mic if asked)';
+      } else {
+        // Stop listening
+        rec.stop();
+        listening = false;
+        voiceToggle.textContent = '🎤 Start Voice';
+        statusEl.textContent = 'You can type below or use voice 🎤';
+      }
     });
 
     rec.onresult = (e)=>{
@@ -104,8 +108,28 @@
       });
     };
 
-    rec.onerror = ()=>{ statusEl.textContent = 'Mic error. Try again.'; };
-    rec.onend = ()=>{ voiceBtn.disabled = false; };
+    rec.onerror = ()=>{ statusEl.textContent = 'Mic error. Try again.'; listening = false; voiceToggle.textContent = '🎤 Start Voice'; };
+    rec.onend = ()=>{
+      if(listening){
+        listening = false;
+        voiceToggle.textContent = '🎤 Start Voice';
+        statusEl.textContent = 'You can type below or use voice 🎤';
+      }
+    };
+
+    // Optional: hide mic icon in webchat when text input is active
+    const observer = new MutationObserver(()=>{
+      const micIcon = document.querySelector('.bpw-speech-button');
+      const textInput = document.querySelector('.bpw-input');
+      if(micIcon && textInput){
+        if(document.activeElement === textInput){
+          micIcon.style.display = 'none';
+        } else {
+          micIcon.style.display = 'inline-block';
+        }
+      }
+    });
+    observer.observe(document.body, { childList:true, subtree:true });
   });
 </script>
 
