@@ -92,14 +92,13 @@
       rec.start();
     });
 
-    rec.onresult=(e)=>{
-      const said=e.results[0][0].transcript;
-      statusEl.textContent=`You said: ${said}`;
-      window.botpress.sendEvent({type:'text', text: said});
-    };
-    rec.onerror=()=>{ statusEl.textContent='Mic error. Try again.'; };
-    rec.onend=()=>{ voiceBtn.disabled=false; };
-  });
+  rec.onresult = (e) => {
+  const said = e.results[0][0].transcript;
+  statusEl.textContent = `You said: ${said}`;
+  // Send the spoken text as a message to the bot
+  window.botpress.sendMessage(said);
+};
+
 </script>
 
 </body>
