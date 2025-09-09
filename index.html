@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>UWC Bot (Text & Voice)</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; }
+    body { font-family: Arial, sans-serif; margin:0; }
     .bar { display:flex; gap:8px; align-items:center; padding:10px; border-bottom:1px solid #eee; }
     #voiceBtn, #stopBtn { border:0; padding:10px 14px; border-radius:8px; cursor:pointer; }
     #voiceBtn { background:#1e88e5; color:#fff; }
@@ -14,7 +14,6 @@
     #status { font-size:14px; color:#555; flex:1; }
     #webchat { width:100%; height: calc(100vh - 56px); }
   </style>
-
   <!-- Botpress Webchat Script -->
   <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
 </head>
@@ -30,62 +29,63 @@
 <div id="webchat"></div>
 
 <script>
-  // Initialize Botpress Webchat
-  window.botpressWebChat.init({
-    host: 'https://cdn.botpress.cloud',
+  // Initialize Botpress Webchat (full text + voice)
+  window.botpress.init({
     botId: 'aa441515-3c65-48ea-acd1-91044111bed2',
     clientId: '4122d265-45f6-47ff-ad06-007367e5444b',
     selector: '#webchat',
-    enableTextInput: true,  // Make sure text input box is shown
-    showConversationsButton: false,
-    style: {
-      botMessageColor: '#3276EA',
-      userMessageColor: '#1e88e5',
+    configuration: {
+      enableTextInput: true,   // ensures text input is visible
+      showConversationsButton: false,
+      themeMode: 'light',
       fontFamily: 'Inter, Arial',
-      borderRadius: 4
+      radius: 4,
+      headerVariant: 'glass',
+      color: '#3276EA',
+      footer: "[⚡ by Botpress](https://botpress.com/?from=webchat)"
     }
   });
 
   // Voice Feature
   (function ready(cb){
-    if(window.botpressWebChat){ cb(); } 
+    if(window.botpress){ cb(); } 
     else { setTimeout(() => ready(cb), 100); }
   })(function(){
-    const statusEl = document.getElementById('status');
-    const voiceBtn = document.getElementById('voiceBtn');
-    const stopBtn = document.getElementById('stopBtn');
+    const statusEl=document.getElementById('status');
+    const voiceBtn=document.getElementById('voiceBtn');
+    const stopBtn=document.getElementById('stopBtn');
 
     // Text-to-Speech
     function speak(text){
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'en-US';
-      u.rate = 1.0;
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-US';
+      u.rate=1.0;
       window.speechSynthesis.speak(u);
     }
 
-    stopBtn.addEventListener('click', () => window.speechSynthesis.cancel());
+    stopBtn.addEventListener('click',()=>window.speechSynthesis.cancel());
 
     // Speak bot replies
-    window.botpressWebChat.onEvent('message', (event) => {
+    window.botpress.on('message', (event)=>{
       if(event.payload && event.payload.text){
         speak(event.payload.text);
       }
     });
 
     // Speech-to-Text
-    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!Rec){
       statusEl.textContent='Voice input not supported in this browser. Please use Chrome.';
       voiceBtn.disabled=true;
       return;
     }
 
-    const rec = new Rec();
+    const rec=new Rec();
     rec.lang='en-US';
     rec.interimResults=false;
 
-    voiceBtn.addEventListener('click', ()=>{
+    voiceBtn.addEventListener('click',()=>{
       window.speechSynthesis.cancel();
       statusEl.textContent='Listening… (allow mic if asked)';
       voiceBtn.disabled=true;
@@ -95,8 +95,7 @@
     rec.onresult=(e)=>{
       const said=e.results[0][0].transcript;
       statusEl.textContent=`You said: ${said}`;
-      // Send voice input as text to bot
-      window.botpressWebChat.sendEvent({type:'text', text: said});
+      window.botpress.sendEvent({type:'text', text: said});
     };
     rec.onerror=()=>{ statusEl.textContent='Mic error. Try again.'; };
     rec.onend=()=>{ voiceBtn.disabled=false; };
@@ -105,4 +104,3 @@
 
 </body>
 </html>
-
