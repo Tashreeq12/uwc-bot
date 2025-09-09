@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UWC Bot (Text & Voice)</title>
+  <title>UWC Bot (Text + Voice)</title>
   <style>
     body { font-family: Arial, sans-serif; margin:0; }
     .bar { display:flex; gap:8px; align-items:center; padding:10px; border-bottom:1px solid #eee; }
@@ -25,11 +25,10 @@
   <span id="status">You can type below or use voice 🎤</span>
 </div>
 
-<!-- Botpress Chat Container -->
 <div id="webchat"></div>
 
 <script>
-  // Initialize Botpress Webchat (full text + voice)
+  // Initialize Botpress Webchat
   window.botpress.init({
     botId: 'aa441515-3c65-48ea-acd1-91044111bed2',
     clientId: '4122d265-45f6-47ff-ad06-007367e5444b',
@@ -48,7 +47,7 @@
 
   // Voice Feature
   (function ready(cb){
-    if(window.botpress){ cb(); } 
+    if(window.botpressWebChat){ cb(); } 
     else { setTimeout(() => ready(cb), 100); }
   })(function(){
     const statusEl=document.getElementById('status');
@@ -67,7 +66,7 @@
     stopBtn.addEventListener('click',()=>window.speechSynthesis.cancel());
 
     // Speak bot replies
-    window.botpress.on('message', (event)=>{
+    window.botpressWebChat.onEvent('message', (event)=>{
       if(event.payload && event.payload.text){
         speak(event.payload.text);
       }
@@ -92,14 +91,24 @@
       rec.start();
     });
 
-  rec.onresult = (e) => {
-  const said = e.results[0][0].transcript;
-  statusEl.textContent = `You said: ${said}`;
-  // Send the spoken text as a message to the bot
-  window.botpress.sendMessage(said);
-};
+    rec.onresult = (e) => {
+      const said = e.results[0][0].transcript;
+      statusEl.textContent = `You said: ${said}`;
 
+      // Send the spoken text properly to Botpress
+      window.botpressWebChat.sendEvent({
+        type: 'input.text',
+        text: said,
+        payload: {},
+        channel: 'web'
+      });
+    };
+
+    rec.onerror=()=>{ statusEl.textContent='Mic error. Try again.'; };
+    rec.onend=()=>{ voiceBtn.disabled=false; };
+  });
 </script>
 
 </body>
 </html>
+
