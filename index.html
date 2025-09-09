@@ -11,7 +11,6 @@
     #voiceToggle:disabled { background:#9e9e9e; }
     #status { font-size:14px; color:#555; flex:1; }
     #webchat { width:100%; height: calc(100vh - 56px); }
-    .bpw-speech-button { display: none !important; } /* hide default voice button */
   </style>
   <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
 </head>
@@ -25,14 +24,13 @@
 <div id="webchat"></div>
 
 <script>
-  // Initialize Botpress Webchat without default voice button
+  // Initialize Botpress Webchat
   window.botpress.init({
     botId: 'aa441515-3c65-48ea-acd1-91044111bed2',
     clientId: '4122d265-45f6-47ff-ad06-007367e5444b',
     selector: '#webchat',
     configuration: {
       enableTextInput: true,
-      enableVoice: false,  // disables top-left voice button
       showConversationsButton: false,
       themeMode: 'light',
       fontFamily: 'Inter, Arial',
@@ -50,7 +48,7 @@
     const statusEl = document.getElementById('status');
     const voiceToggle = document.getElementById('voiceToggle');
 
-    // Function to speak text aloud
+    // Text-to-Speech
     function speak(text){
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -59,24 +57,14 @@
       window.speechSynthesis.speak(u);
     }
 
-    // Function to play short audio cues
-    function playSound(type){
-      const audio = new Audio();
-      if(type === 'listening') audio.src = 'https://actions.google.com/sounds/v1/alarms/beep_short.ogg';
-      else if(type === 'stopped') audio.src = 'https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg';
-      else if(type === 'botSpeaking') audio.src = 'https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg';
-      audio.play();
-    }
-
-    // Speak bot replies and play cue
+    // Speak bot replies aloud
     window.botpressWebChat.onEvent('incoming.message', (event)=>{
       if(event.payload && event.payload.text){
-        playSound('botSpeaking');
         speak(event.payload.text);
       }
     });
 
-    // Speech-to-Text setup
+    // Speech-to-Text
     const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!Rec){
       statusEl.textContent = 'Voice input not supported in this browser. Please use Chrome.';
@@ -92,17 +80,18 @@
 
     voiceToggle.addEventListener('click', ()=>{
       if(!listening){
+        // Start listening
+        window.speechSynthesis.cancel();
         rec.start();
         listening = true;
         voiceToggle.textContent = '⏹ Stop Voice';
         statusEl.textContent = 'Listening… (allow mic if asked)';
-        playSound('listening');
       } else {
+        // Stop listening
         rec.stop();
         listening = false;
         voiceToggle.textContent = '🎤 Start Voice';
         statusEl.textContent = 'You can type below or use voice 🎤';
-        playSound('stopped');
       }
     });
 
@@ -119,24 +108,31 @@
       });
     };
 
-    rec.onerror = ()=>{
-      statusEl.textContent = 'Mic error. Try again.';
-      listening = false;
-      voiceToggle.textContent = '🎤 Start Voice';
-      playSound('stopped');
-    };
-    
+    rec.onerror = ()=>{ statusEl.textContent = 'Mic error. Try again.'; listening = false; voiceToggle.textContent = '🎤 Start Voice'; };
     rec.onend = ()=>{
       if(listening){
         listening = false;
         voiceToggle.textContent = '🎤 Start Voice';
         statusEl.textContent = 'You can type below or use voice 🎤';
-        playSound('stopped');
       }
     };
+
+    // Optional: hide mic icon in webchat when text input is active
+    const observer = new MutationObserver(()=>{
+      const micIcon = document.querySelector('.bpw-speech-button');
+      const textInput = document.querySelector('.bpw-input');
+      if(micIcon && textInput){
+        if(document.activeElement === textInput){
+          micIcon.style.display = 'none';
+        } else {
+          micIcon.style.display = 'inline-block';
+        }
+      }
+    });
+    observer.observe(document.body, { childList:true, subtree:true });
   });
 </script>
 
 </body>
-</html>
+</html> 
 
