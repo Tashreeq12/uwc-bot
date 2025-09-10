@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UWC Bot (Mobile-Friendly, Voice Enabled)</title>
+<title>UWC Bot (Voice Enabled)</title>
 <style>
   body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
 
@@ -55,9 +55,6 @@
     height: 60vh;
     margin-bottom: 20px;
   }
-
-  /* Hide Botpress floating button */
-  .bpw-floating-button { display:none !important; }
 
   /* Make chat responsive */
   @media (max-width: 600px){
@@ -170,7 +167,16 @@
 
     // Open bot when UWC Bot button clicked
     openBotBtn.addEventListener('click', ()=>{
-      if(window.botpressWebChat) window.botpressWebChat.open();
+      if(window.botpressWebChat) {
+        window.botpressWebChat.open();
+
+        // Hide floating FAB after opening
+        setTimeout(()=>{
+          const fab = document.querySelector('.bpw-floating-button');
+          if(fab) fab.style.display = 'none';
+        }, 500);
+      }
+
       voiceControls.style.display = 'flex';
       statusEl.textContent='You can type below or use voice 🎤';
     });
@@ -179,6 +185,8 @@
 
 </body>
 </html>
+
+
 
 
 
