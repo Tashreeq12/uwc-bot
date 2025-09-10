@@ -1,94 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>UWC Bot (Voice Enabled)</title>
-<style>
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UWC Bot (Voice Enabled Popup)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; }
 
-  /* UWC Bot Button */
-  #openBot {
-    margin: 20px 0 10px 0;
-    padding: 12px 20px;
-    font-size: 18px;
-    background: #3276EA;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-  }
+    /* Modal background */
+    #botModal {
+      display: none; /* hidden by default */
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
 
-  /* Voice Controls */
-  #voiceControls {
-    display: none;
-    flex-direction: row;
-    gap: 8px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  #voiceBtn, #stopBtn {
-    border:0;
-    padding:10px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:16px;
-  }
-  #voiceBtn { background:#1e88e5; color:#fff; }
-  #voiceBtn:disabled { background:#9e9e9e; cursor:not-allowed; }
-  #stopBtn { background:#f5f5f5; }
+    /* Modal content box */
+    #botContent {
+      background-color: #fff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
 
-  /* Status text */
-  #status {
-    font-size:14px;
-    color:#555;
-    text-align: center;
-    width: 100%;
-    max-width: 500px;
-  }
+    /* Top bar with voice buttons */
+    .bar { display:flex; gap:8px; align-items:center; padding:10px; border-bottom:1px solid #eee; }
+    #voiceBtn, #stopBtn { border:0; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    #voiceBtn { background:#1e88e5; color:#fff; }
+    #voiceBtn:disabled { background:#9e9e9e; }
+    #stopBtn { background:#f5f5f5; }
+    #status { font-size:14px; color:#555; flex:1; }
 
-  /* Chat container */
-  #webchat {
-    width: 100%;
-    max-width: 500px;
-    height: 60vh;
-    margin-bottom: 20px;
-  }
+    /* Webchat container */
+    #webchat { flex:1; }
 
-  /* Make chat responsive */
-  @media (max-width: 600px){
-    #webchat { height: 70vh; }
-    #openBot { width: 90%; }
-  }
-</style>
+    /* Close button */
+    #closeBtn {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
 
-<!-- Botpress Webchat -->
-<script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
+    /* Hide floating FAB */
+    .bpw-floating-button { display: none !important; }
+  </style>
 
+  <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
+</head>
 <body>
 
-<!-- UWC Bot Button -->
-<button id="openBot">UWC Bot</button>
+<!-- Button on your Google Site -->
+<button id="openBot">Open UWC Bot</button>
 
-<!-- Voice Controls -->
-<div id="voiceControls">
-  <button id="voiceBtn">🎤 Speak</button>
-  <button id="stopBtn">⏹ Stop Voice</button>
+<!-- Modal -->
+<div id="botModal">
+  <div id="botContent">
+    <button id="closeBtn">✖</button>
+    <div class="bar">
+      <button id="voiceBtn">🎤 Speak</button>
+      <button id="stopBtn">⏹ Stop Voice</button>
+      <span id="status"></span>
+    </div>
+    <div id="webchat"></div>
+  </div>
 </div>
 
-<!-- Status -->
-<div id="status"></div>
-
-<!-- Chat Container -->
-<div id="webchat"></div>
-
 <script>
-  // Initialize Botpress
+  const openBotBtn = document.getElementById('openBot');
+  const modal = document.getElementById('botModal');
+  const closeBtn = document.getElementById('closeBtn');
+
+  // Open modal
+  openBotBtn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    window.botpressWebChat && window.botpressWebChat.open();
+  });
+
+  // Close modal
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // Initialize Botpress Webchat
   window.botpress.init({
-    botId: 'aa441515-3c65-48ea-acd1-91044111bed2',
-    clientId: '4122d265-45f6-47ff-ad06-007367e5444b',
-    selector: '#webchat',
+    botId: "aa441515-3c65-48ea-acd1-91044111bed2",
+    clientId: "4122d265-45f6-47ff-ad06-007367e5444b",
+    selector: "#webchat",
     configuration: {
       enableTextInput: true,
       showConversationsButton: false,
@@ -101,90 +115,249 @@
     }
   });
 
-  // Wait until Botpress is ready
   (function ready(cb){
     if(window.botpressWebChat){ cb(); } 
     else { setTimeout(() => ready(cb), 100); }
   })(function(){
-    const openBotBtn = document.getElementById('openBot');
-    const voiceControls = document.getElementById('voiceControls');
-    const voiceBtn = document.getElementById('voiceBtn');
-    const stopBtn = document.getElementById('stopBtn');
-    const statusEl = document.getElementById('status');
+    const statusEl=document.getElementById('status');
+    const voiceBtn=document.getElementById('voiceBtn');
+    const stopBtn=document.getElementById('stopBtn');
 
     // Text-to-Speech
     function speak(text){
       window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang='en-US'; 
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-US';
       u.rate=1.0;
       window.speechSynthesis.speak(u);
     }
+    stopBtn.addEventListener('click',()=>window.speechSynthesis.cancel());
 
-    // Listen for bot messages
-    window.botpressWebChat.onEvent('incoming.message', (event)=>{
+    // Speak bot replies
+    window.botpressWebChat.onEvent('incoming.message',(event)=>{
       if(event.payload && event.payload.text){
         speak(event.payload.text);
       }
     });
 
-    // Speech recognition
-    const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    let rec, listening = false;
-    if(Rec){
-      rec = new Rec();
-      rec.lang = 'en-US';
-      rec.interimResults = false;
-
-      rec.onresult = (e)=>{
-        const said = e.results[0][0].transcript;
-        statusEl.textContent = `You said: ${said}`;
-        window.botpressWebChat.sendEvent({ type:'input.text', text: said });
-      };
-      rec.onerror = ()=>{
-        statusEl.textContent='Mic error. Try again.';
-        listening = false;
-        voiceBtn.disabled = false;
-      };
-      rec.onend = ()=>{
-        listening = false;
-        voiceBtn.disabled = false;
-        statusEl.textContent='You can type below or use voice 🎤';
-      };
-
-      voiceBtn.addEventListener('click', ()=>{
-        window.speechSynthesis.cancel();
-        statusEl.textContent='Listening… (allow mic if asked)';
-        voiceBtn.disabled = true;
-        listening = true;
-        rec.start();
-      });
-      stopBtn.addEventListener('click', ()=>window.speechSynthesis.cancel());
-    } else {
-      statusEl.textContent='Voice input not supported. Please use Chrome.';
-      voiceBtn.disabled = true;
+    // Speech-to-Text
+    const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Rec){
+      statusEl.textContent='Voice input not supported in this browser. Please use Chrome.';
+      voiceBtn.disabled=true;
+      return;
     }
 
-    // Open bot when UWC Bot button clicked
-    openBotBtn.addEventListener('click', ()=>{
-      if(window.botpressWebChat) {
-        window.botpressWebChat.open();
+    const rec=new Rec();
+    rec.lang='en-US';
+    rec.interimResults=false;
 
-        // Hide floating FAB after opening
-        setTimeout(()=>{
-          const fab = document.querySelector('.bpw-floating-button');
-          if(fab) fab.style.display = 'none';
-        }, 500);
-      }
-
-      voiceControls.style.display = 'flex';
-      statusEl.textContent='You can type below or use voice 🎤';
+    voiceBtn.addEventListener('click',()=>{
+      window.speechSynthesis.cancel();
+      statusEl.textContent='Listening… (allow mic if asked)';
+      voiceBtn.disabled=true;
+      rec.start();
     });
+
+    rec.onresult=(e)=>{
+      const said=e.results[0][0].transcript;
+      statusEl.textContent=`You said: ${said}`;
+      window.botpressWebChat.sendEvent({type:'input.text', text: said});
+    };
+    rec.onerror=()=>{ statusEl.textContent='Mic error. Try again.'; };
+    rec.onend=()=>{ voiceBtn.disabled=false; };
+
+    // Ensure FAB hidden
+    setTimeout(()=>{
+      const fab = document.querySelector('.bpw-floating-button');
+      if(fab) fab.style.display='none';
+    }, 500);
   });
 </script>
 
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UWC Bot (Voice Enabled Popup)</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; }
+
+    /* Modal background */
+    #botModal {
+      display: none; /* hidden by default */
+      position: fixed;
+      z-index: 9999;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Modal content box */
+    #botContent {
+      background-color: #fff;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    /* Top bar with voice buttons */
+    .bar { display:flex; gap:8px; align-items:center; padding:10px; border-bottom:1px solid #eee; }
+    #voiceBtn, #stopBtn { border:0; padding:10px 14px; border-radius:8px; cursor:pointer; }
+    #voiceBtn { background:#1e88e5; color:#fff; }
+    #voiceBtn:disabled { background:#9e9e9e; }
+    #stopBtn { background:#f5f5f5; }
+    #status { font-size:14px; color:#555; flex:1; }
+
+    /* Webchat container */
+    #webchat { flex:1; }
+
+    /* Close button */
+    #closeBtn {
+      position: absolute;
+      right: 15px;
+      top: 10px;
+      background: #f44336;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    /* Hide floating FAB */
+    .bpw-floating-button { display: none !important; }
+  </style>
+
+  <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
+</head>
+<body>
+
+<!-- Button on your Google Site -->
+<button id="openBot">Open UWC Bot</button>
+
+<!-- Modal -->
+<div id="botModal">
+  <div id="botContent">
+    <button id="closeBtn">✖</button>
+    <div class="bar">
+      <button id="voiceBtn">🎤 Speak</button>
+      <button id="stopBtn">⏹ Stop Voice</button>
+      <span id="status"></span>
+    </div>
+    <div id="webchat"></div>
+  </div>
+</div>
+
+<script>
+  const openBotBtn = document.getElementById('openBot');
+  const modal = document.getElementById('botModal');
+  const closeBtn = document.getElementById('closeBtn');
+
+  // Open modal
+  openBotBtn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    window.botpressWebChat && window.botpressWebChat.open();
+  });
+
+  // Close modal
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+
+  // Initialize Botpress Webchat
+  window.botpress.init({
+    botId: "aa441515-3c65-48ea-acd1-91044111bed2",
+    clientId: "4122d265-45f6-47ff-ad06-007367e5444b",
+    selector: "#webchat",
+    configuration: {
+      enableTextInput: true,
+      showConversationsButton: false,
+      themeMode: 'light',
+      fontFamily: 'Inter, Arial',
+      radius: 4,
+      headerVariant: 'glass',
+      color: '#3276EA',
+      footer: "[⚡ by Botpress](https://botpress.com/?from=webchat)"
+    }
+  });
+
+  (function ready(cb){
+    if(window.botpressWebChat){ cb(); } 
+    else { setTimeout(() => ready(cb), 100); }
+  })(function(){
+    const statusEl=document.getElementById('status');
+    const voiceBtn=document.getElementById('voiceBtn');
+    const stopBtn=document.getElementById('stopBtn');
+
+    // Text-to-Speech
+    function speak(text){
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.lang='en-US';
+      u.rate=1.0;
+      window.speechSynthesis.speak(u);
+    }
+    stopBtn.addEventListener('click',()=>window.speechSynthesis.cancel());
+
+    // Speak bot replies
+    window.botpressWebChat.onEvent('incoming.message',(event)=>{
+      if(event.payload && event.payload.text){
+        speak(event.payload.text);
+      }
+    });
+
+    // Speech-to-Text
+    const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!Rec){
+      statusEl.textContent='Voice input not supported in this browser. Please use Chrome.';
+      voiceBtn.disabled=true;
+      return;
+    }
+
+    const rec=new Rec();
+    rec.lang='en-US';
+    rec.interimResults=false;
+
+    voiceBtn.addEventListener('click',()=>{
+      window.speechSynthesis.cancel();
+      statusEl.textContent='Listening… (allow mic if asked)';
+      voiceBtn.disabled=true;
+      rec.start();
+    });
+
+    rec.onresult=(e)=>{
+      const said=e.results[0][0].transcript;
+      statusEl.textContent=`You said: ${said}`;
+      window.botpressWebChat.sendEvent({type:'input.text', text: said});
+    };
+    rec.onerror=()=>{ statusEl.textContent='Mic error. Try again.'; };
+    rec.onend=()=>{ voiceBtn.disabled=false; };
+
+    // Ensure FAB hidden
+    setTimeout(()=>{
+      const fab = document.querySelector('.bpw-floating-button');
+      if(fab) fab.style.display='none';
+    }, 500);
+  });
+</script>
+
+</body>
+</html>
+
+
 
 
 
