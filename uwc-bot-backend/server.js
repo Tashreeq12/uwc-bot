@@ -21,16 +21,17 @@ app.post('/botpress', async (req, res) => {
     if (!userMessage) return res.status(400).send('No message provided.');
 
     try {
-        // Send user message to Botpress
+        // Send user message to Botpress API
         const botResponse = await axios.post(
-            'https://your-botpress-server.com/api/v1/bots/your-bot-id/converse',
-            { text: userMessage },
+            'https://studio.botpress.cloud/aa441515-3c65-48ea-acd1-91044111bed2/home, // <-- Replace with your Bot ID
+            { text: userMessage, user: 'user123' }, // user123 is a unique user ID
             { headers: { Authorization: `Bearer ${process.env.BOTPRESS_API_KEY}` } }
         );
 
-        const botReply = botResponse.data; // Botpress text reply
+        // Extract Botpress text reply
+        const botReply = botResponse.data.responses[0].text;
 
-        // Convert Botpress reply to speech
+        // Convert Botpress reply to speech using ElevenLabs
         const speechResponse = await axios.post(
             `https://api.elevenlabs.io/v1/text-to-speech/${process.env.VOICE_ID}`,
             { text: botReply },
