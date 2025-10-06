@@ -3,33 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>UWC Bot (Voice Enabled)</title>
+  <title>UWC Bot</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; }
+    body { font-family: Arial, sans-serif; margin: 0; background: #f0f0f0; }
 
-    .bar {
-      display:flex;
-      gap:8px;
-      align-items:center;
-      padding:10px;
-      border-bottom:1px solid #eee;
-    }
-
-    #voiceBtn, #stopBtn {
-      border:0;
-      padding:10px 14px;
-      border-radius:8px;
-      cursor:pointer;
-    }
-    #voiceBtn { background:#1e88e5; color:#fff; }
-    #voiceBtn:disabled { background:#9e9e9e; }
-    #stopBtn { background:#f5f5f5; }
-    #status { font-size:14px; color:#555; }
-
-    /* Center the bot on screen */
+    /* Centered Webchat container */
     #webchat {
       width: 500px;
-      height: 500px;
+      height: 600px;
       position: fixed;
       top: 50%;
       left: 50%;
@@ -39,11 +20,8 @@
       background: #fff;
       z-index: 1000;
     }
-  </style>
 
-  <!-- Botpress Webchat Script -->
-  <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
-  <style>
+    /* Ensure webchat fits container */
     #webchat .bpWebchat {
       position: unset;
       width: 100%;
@@ -51,116 +29,42 @@
       max-height: 100%;
       max-width: 100%;
     }
-    #webchat .bpFab {
-      display: none;
+    #webchat .bpFab { display: none; }
+
+    @media (max-width: 600px) {
+      #webchat { width: 90%; height: 80%; }
     }
   </style>
+
+  <!-- Botpress Webchat Script -->
+  <script src="https://cdn.botpress.cloud/webchat/v3.2/inject.js"></script>
 </head>
 <body>
 
-<div class="bar">
-  <button id="voiceBtn">🎤 Speak</button>
-  <button id="stopBtn">⏹ Stop Voice</button>
-  <span id="status"></span>
-</div>
-
-<!-- Botpress Chat Container -->
 <div id="webchat"></div>
 
 <script>
+  // Initialize Botpress webchat
+  window.botpress.init({
+    botId: "  aa441515-3c65-48ea-acd1-91044111bed2",
+    clientId: "4122d265-45f6-47ff-ad06-007367e5444b",
+    selector: "#webchat",
+    configuration: {
+      version: "v2",
+      color: "#3276EA",
+      variant: "solid",
+      headerVariant: "glass",
+      themeMode: "light",
+      fontFamily: "inter",
+      radius: 4,
+      feedbackEnabled: false,
+      footer: "[⚡ by Botpress](https://botpress.com/?from=webchat)"
+    }
+  });
+
   window.botpress.on("webchat:ready", () => {
     window.botpress.open();
   });
-
-  window.botpress.init({
-    "botId": "aa441515-3c65-48ea-acd1-91044111bed2",
-    "configuration": {
-      "version": "v2",
-      "website": {},
-      "email": {},
-      "phone": {},
-      "termsOfService": {},
-      "privacyPolicy": {},
-      "color": "#3276EA",
-      "variant": "solid",
-      "headerVariant": "glass",
-      "themeMode": "light",
-      "fontFamily": "inter",
-      "radius": 4,
-      "feedbackEnabled": false,
-      "footer": "[⚡ by Botpress](https://botpress.com/?from=webchat)"
-    },
-    "clientId": "4122d265-45f6-47ff-ad06-007367e5444b",
-    "selector": "#webchat"
-  });
-</script>
-
-<!-- 🎤 Voice Feature using ElevenLabs Backend -->
-<script>
-(function ready(cb){
-  if(window.botpress){ cb(); }
-  else { setTimeout(() => ready(cb), 100); }
-})(function(){
-  const statusEl = document.getElementById('status');
-  const voiceBtn = document.getElementById('voiceBtn');
-  const stopBtn = document.getElementById('stopBtn');
-
-  let audio = new Audio();
-
-  // Updated speak() function calling your backend
-  async function speak(text) {
-    try {
-      const response = await fetch('http://localhost:3000/speak', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text })
-      });
-
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      audio.src = url;
-      audio.play();
-    } catch (err) {
-      console.error('TTS Error:', err);
-    }
-  }
-
-  stopBtn.addEventListener('click', () => audio.pause());
-
-  // Speak bot replies
-  window.botpress.on('message', (event) => {
-    if (event.payload && event.payload.text) {
-      speak(event.payload.text); // Use ElevenLabs TTS
-    }
-  });
-
-  // Speech-to-Text for user input
-  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Rec) {
-    statusEl.textContent = 'Voice input not supported in this browser. Please use Chrome.';
-    voiceBtn.disabled = true;
-    return;
-  }
-
-  const rec = new Rec();
-  rec.lang = 'en-US';
-  rec.interimResults = false;
-
-  voiceBtn.addEventListener('click', () => {
-    audio.pause();
-    statusEl.textContent = 'Listening… (allow mic if asked)';
-    voiceBtn.disabled = true;
-    rec.start();
-  });
-
-  rec.onresult = (e) => {
-    const said = e.results[0][0].transcript;
-    statusEl.textContent = `You said: ${said}`;
-    window.botpress.sendEvent({ type:'text', text: said });
-  };
-  rec.onerror = () => { statusEl.textContent = 'Mic error. Try again.'; };
-  rec.onend = () => { voiceBtn.disabled = false; };
-});
 </script>
 
 </body>
